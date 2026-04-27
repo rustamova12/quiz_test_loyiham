@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>IT Quiz 20 Mavzu</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(to right, #141e30, #243b55);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.container {
+    background: #1e2a38;
+    padding: 25px;
+    border-radius: 15px;
+    width: 450px;
+    text-align: center;
+}
+button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+#answers button {
+    display: block;
+    width: 100%;
+    background: #2f3e52;
+    color: white;
+    margin-top: 5px;
+}
+.correct { background: green !important; color: white; }
+.wrong { background: red !important; color: white; }
+.hidden { display: none; }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>IT Quiz 20 Mavzu</h1>
+
+<!-- 1 MENU -->
+<div id="mainMenu">
+    <button onclick="showTopics('html')">HTML</button>
+    <button onclick="showTopics('css')">CSS</button>
+</div>
+
+<!-- 2 TOPICS -->
+<div id="topics" class="hidden"></div>
+
+<!-- 3 QUIZ -->
+<div id="quiz" class="hidden">
+    <h3 id="question"></h3>
+    <div id="answers"></div>
+    <button onclick="nextQuestion()">Next</button>
+</div>
+
+<div id="result"></div>
+<button id="restartBtn" class="hidden" onclick="restart()">Restart</button>
+
+</div>
+
+<script>
+// 20 MAVZU
+const topics = {
+    html: ["Basic Structure","Headings & Paragraphs","Links","Images","Lists","Tables","Forms","Media","Semantic Tags","Attributes & Metadata"],
+    css: ["Basics & Selectors","Colors & Backgrounds","Typography","Box Model","Display & Position","Flexbox","Grid","Transitions & Animations","Pseudo-classes & Pseudo-elements","Responsive Design"]
+};
+
+// Har mavzu uchun misol savollar (5 ta)
+const questionBank = {
+    "Basic Structure":[
+        {question:"HTML nima?", answers:["Dasturlash tili","Markup tili","Database","Server"], correct:1},
+        {question:"<!DOCTYPE html> nima uchun?", answers:["Fayl tipi","Browserni bildiradi","CSS qo‘shadi","Hech nima"], correct:1},
+        {question:"<html> tegi nima?", answers:["Boshlang‘ich","Oxirgi","Paragraf","Rasm"], correct:0},
+        {question:"<head> tegi nima?", answers:["Sarlavha info","Matn","Rasm","Link"], correct:0},
+        {question:"<body> tegi nima?", answers:["Asosiy kontent","Title","Meta info","Form"], correct:0}
+    ],
+    "Headings & Paragraphs":[
+        {question:"<h1> nima?", answers:["Sarlavha","Paragraf","Link","Rasm"], correct:0},
+        {question:"<p> nima qiladi?", answers:["Paragraf yaratadi","Rasm qo‘shadi","Link beradi","Header"], correct:0},
+        {question:"Headinglar nechta?", answers:["1-6","1-5","1-4","1-3"], correct:0},
+        {question:"<h3> qaysi daraja?", answers:["O‘rta","Katta","Kichik","Eng kichik"], correct:0},
+        {question:"Paragraf tegi yopish kerakmi?", answers:["Ha","Yo‘q","Ba'zan","Faqat CSS bilan"], correct:0}
+    ],
+    "Links":[
+        {question:"<a> tegi nima?", answers:["Link","Paragraf","Rasm","Table"], correct:0},
+        {question:"Href atributi nima?", answers:["Link manzili","Matn","Rasm","Form"], correct:0},
+        {question:"Target='_blank' nima qiladi?", answers:["Yangi tab ochadi","Hech nima","Form yuboradi","Rasm qo‘shadi"], correct:0},
+        {question:"Mail link qaysi?", answers:["mailto:","tel:","http:","img:"], correct:0},
+        {question:"# link nima qiladi?", answers:["Sahifa ichidagi section","Sahifa ochadi","Rasm qo‘shadi","Hech nima"], correct:0}
+    ],
+    "Images":[
+        {question:"<img> tegi nima?", answers:["Rasm qo‘shadi","Matn","Link","Form"], correct:0},
+        {question:"Src atributi nima?", answers:["Rasm manzili","Matn","Link","Form"], correct:0},
+        {question:"Alt atributi nima?", answers:["Rasm tavsifi","Matn","Link","Form"], correct:0},
+        {question:"Width atributi nima?", answers:["Rasm kengligi","Matn","Link","Form"], correct:0},
+        {question:"Height atributi nima?", answers:["Rasm bo‘yligi","Matn","Link","Form"], correct:0}
+    ],
+    "Lists":[
+        {question:"<ul> nima?", answers:["Unordered list","Ordered list","Paragraf","Table"], correct:0},
+        {question:"<ol> nima?", answers:["Ordered list","Unordered list","Paragraf","Table"], correct:0},
+        {question:"<li> nima?", answers:["List item","List container","Paragraf","Table"], correct:0},
+        {question:"List yopish kerakmi?", answers:["Ha","Yo‘q","Ba'zan","Faqat CSS"], correct:0},
+        {question:"Nested list nima?", answers:["Ichma-ich list","Link","Rasm","Form"], correct:0}
+    ]
+    // Shu uslubda qolgan 15 ta mavzuni siz xohlaysiz, shunchaki qo‘shishingiz mumkin
+};
+
+let currentQuestions = [];
+let currentQuestion = 0;
+let score = 0;
+
+const menu = document.getElementById("mainMenu");
+const topicsDiv = document.getElementById("topics");
+const quiz = document.getElementById("quiz");
+const questionEl = document.getElementById("question");
+const answersEl = document.getElementById("answers");
+const resultEl = document.getElementById("result");
+const restartBtn = document.getElementById("restartBtn");
+
+function showTopics(type){
+    menu.classList.add("hidden");
+    topicsDiv.classList.remove("hidden");
+    topicsDiv.innerHTML = "<h3>Mavzuni tanlang</h3>";
+    topics[type].forEach(t=>{
+        let btn = document.createElement("button");
+        btn.innerText = t;
+        btn.onclick = ()=> startQuiz(t);
+        topicsDiv.appendChild(btn);
+    });
+}
+
+function startQuiz(topic){
+    currentQuestions = questionBank[topic];
+    if(!currentQuestions) {
+        alert("Savollar mavjud emas. Keyinroq qo‘shiladi.");
+        location.reload();
+        return;
+    }
+    topicsDiv.classList.add("hidden");
+    quiz.classList.remove("hidden");
+    currentQuestion=0;
+    score=0;
+    loadQuestion();
+}
+
+function loadQuestion(){
+    let q = currentQuestions[currentQuestion];
+    questionEl.innerText = q.question;
+    answersEl.innerHTML = "";
+    q.answers.forEach((a,i)=>{
+        let btn=document.createElement("button");
+        btn.innerText=a;
+        btn.onclick=()=>checkAnswer(i);
+        answersEl.appendChild(btn);
+    });
+}
+
+function checkAnswer(index){
+    let correct=currentQuestions[currentQuestion].correct;
+    let btns=answersEl.children;
+    for(let i=0;i<btns.length;i++){
+        if(i===correct) btns[i].classList.add("correct");
+        else btns[i].classList.add("wrong");
+    }
+    if(index===correct) score++;
+}
+
+function nextQuestion(){
+    currentQuestion++;
+    if(currentQuestion<currentQuestions.length){
+        loadQuestion();
+    }else{
+        showResult();
+    }
+}
+
+function showResult(){
+    quiz.classList.add("hidden");
+    resultEl.innerHTML=`<h2>Natija: ${score}/${currentQuestions.length}</h2>`;
+    restartBtn.classList.remove("hidden");
+}
+
+function restart(){
+    location.reload();
+}
+</script>
+</body>
+</html>
+
